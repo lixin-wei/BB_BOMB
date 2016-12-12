@@ -7,27 +7,29 @@
 
 //Global variables
 var FRAME_SPEED = 10,
-    HERO_SIZE = 20,
-    KEY_DOWN_STEP = 10;
+    HERO_SIZE = 30,
+    KEY_DOWN_STEP = 10,
+    LASER_SPEED = 15;
 
 var stopped = false,
     isKeyDownLeft = false,
     isKeyDownRight = false,
     isKeyDownUp = false,
-    isKeyDownDown = false;
+    isKeyDownDown = false,
+    isShooting = false,
+    lastShotTime = +new Date(),
+    laserShotInterval = 10;//ms pre shot
+    mousePos = new Victor(0,0);
 
 var canvas = document.getElementById("canvas"),
     ctx = canvas.getContext("2d");
 
 var hero = new Hero(),
-    laser = new Laser();
+    laserCollection = new LaserCollection();
 
 //Functions
 function Hero() {
-    this.pos = {
-        x : canvas.width/2,
-        y : canvas.height/2
-    };
+    this.pos = new Victor( canvas.width/2,canvas.height/2);
     this.MAX_LINE_WIDTH = 5;
     this.MIN_LINE_WIDTH = 1;
     this.lineWidth = 1;
@@ -56,43 +58,51 @@ function Hero() {
             this.lineAnimateDir = -this.lineAnimateDir;
     };
 }
-function Laser() {
-    this.shown = false;
-    this.animateHidden = false;
-    this.HIDE_FRAME = 3;
-    this.frame = 0;
-    this.endPos = {
-        x : 0,
-        y : 0
-    };
+function Laser(center, dir, len, speed) {
+    this.dir = dir.normalize();
+    this.len = len;
+    this.startPos = center;
+    this.endPos = this.startPos.clone().add(this.dir.clone().multiply(new Victor(this.len,this.len)));
+    this.speed = speed;
+
     this.draw = function() {
-        if(this.shown && this.animateHidden) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.moveTo(hero.pos.x, hero.pos.y);
-            ctx.lineTo(this.endPos.x, this.endPos.y);
-            ctx.stroke();
-            ctx.closePath();
-            ctx.restore();
-        }
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(this.startPos.x, this.startPos.y);
+        ctx.lineTo(this.endPos.x, this.endPos.y);
+        ctx.stroke();
+        ctx.closePath();
+        ctx.restore();
     };
     this.update = function () {
-        this.frame++;
-        if(this.frame>=this.HIDE_FRAME) {
-            this.frame = 0;
-            this.animateHidden = ! this.animateHidden;
-        }
+        var d = dir.clone().multiply(new Victor(speed, speed));
+        this.startPos.add(d);
+        this.endPos.add(d);
+    };
+    this.isOut = function () {
+        return this.startPos.x>canvas.width || this.startPos.x<0 || this.startPos.y>canvas.height || this.startPos.y<0;
     };
 }
 function LaserCollection() {
-    this.laserQueue = new buckets.Queue();
-    this.addLaser = function () {
-        
+    this.laserList = new buckets.LinkedList();
+    this.addLaser = function (laser) {
+        this.laserList.add(laser);
     };
     this.draw = function () {
-        this.laserQueue.forEach(function (obj) {
+        var index=0;
+        this.laserList.forEach(function (obj) {
             obj.draw();
-        })
+        });
+        for(var i=0 ; i<this.laserList.size() ; ++i) { //Remove lasers out of screen
+            var temp = this.laserList.first();
+            this.laserList.removeElementAtIndex(0);
+            if(!temp.isOut()) this.laserList.add(temp);
+        }
+    };
+    this.update = function () {
+        this.laserList.forEach(function (obj) {
+            obj.update();
+        });
     };
 }
 function draw() {
@@ -100,11 +110,12 @@ function draw() {
     ctx.fillStyle = "rgba(0,0,0,0.4)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     hero.draw();
-    laser.draw();
+    laserCollection.draw();
     ctx.restore();
 }
 
 function update() {
+
     //hero movement START
     var dx = 0, dy = 0;
     if(isKeyDownLeft) dx -= 1;
@@ -125,7 +136,16 @@ function update() {
     hero.move(dx, dy);
     //hero movement END
     hero.update(0.1);
-    laser.update();
+    var now = +new Date();
+    var itv = now-lastShotTime;
+    if(itv>=laserShotInterval && isShooting) {
+        lastShotTime=now;
+        var dir = new Victor(mousePos.x-hero.pos.x, mousePos.y-hero.pos.y);
+        for(var i=-Math.PI/2+0.5 ; i<=Math.PI/2-0.5 ; i+=0.1*Math.random()) {
+            laserCollection.addLaser(new Laser(hero.pos.clone(), dir.clone().rotate(i), 10*Math.random()+10, LASER_SPEED));
+        }
+    }
+    laserCollection.update();
 }
 function timeOut() {
     draw();
@@ -167,16 +187,13 @@ document.onkeyup = function (event) {
     }
 };
 canvas.onmousedown = function (event) {
-    laser.shown = true;
+    isShooting = true;
 };
 canvas.onmouseup = function (event) {
-    laser.shown = false;
+    isShooting = false;
 };
 canvas.onmousemove = function (event) {
-    laser.endPos = {
-        x : event.offsetX,
-        y : event.offsetY
-    };
+    mousePos = new Victor(event.offsetX, event.offsetY);
 };
 //Init
 ctx.fillRect(0, 0, canvas.width, canvas.height);
