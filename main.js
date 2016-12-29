@@ -638,6 +638,7 @@ function gameStart() {
     lastShotTime = +new Date();
     mousePos = new Victor(0,0);
     lastEnemyProductTime = +new Date();
+    lastTreasureTime = +new Date();
     enemyProductItv = 1000; //ms
     timeOut();
 }
