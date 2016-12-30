@@ -1,7 +1,7 @@
 # BB_BOMB
 A small flight shooting game based on HTML5 Canvas.
 
-### Operation Tutorial
+### Tutorial
 
 W S A D to move.
 
