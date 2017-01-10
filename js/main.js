@@ -3,6 +3,8 @@
  Author    : WEI, Lixin
  Build_Date: Dec. 05, 2016
  Version   : 1.0
+
+ github.com/wlx65003/BB_BOMB
  */
 
 //Global variables
@@ -425,6 +427,27 @@ function Button(pos, width, height, text) {
         ctx.restore();
     }
 }
+function Link(pos, width, height, text) {
+    Button.call(this, pos, width, height, text);
+    this.draw = function () {
+        ctx.save();
+
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "15pt Arial";
+        if(!this.isMouseOver) {
+            ctx.fillStyle="white";
+            ctx.fillText(this.text, this.pos.x+this.width/2, this.pos.y+this.height/2);
+        }
+        else {
+            ctx.fillStyle = "white";
+            ctx.fillRect(this.pos.x, this.pos.y, this.width, this.height);
+            ctx.fillStyle = "black";
+            ctx.fillText(this.text, this.pos.x+this.width/2, this.pos.y+this.height/2);
+        }
+        ctx.restore();
+    }
+}
 function InfoBoard() {
     this.hp = INIT_HP;
     this.energy = 0;
@@ -665,11 +688,17 @@ function showWelcomeInterface() {
         BUTTON_WIDTH = 150;
     var buttonStart = new Button(new Victor(canvas.width/2-BUTTON_WIDTH/2, canvas.height/2+10), BUTTON_WIDTH, BUTTON_HEIGHT, "START");
     var buttonHelp = new Button(new Victor(canvas.width/2-BUTTON_WIDTH/2, canvas.height/2+BUTTON_HEIGHT+35), BUTTON_WIDTH, BUTTON_HEIGHT, "HELP");
+    var githubLink = new Link(new Victor(canvas.width-350, canvas.height-45), 330, 30, "github.com/wlx65003/BB_BOMB");
     buttonStart.onClick = gameStart;
     buttonHelp.onClick = showHelpInterface;
+    githubLink.onClick = jumpToGithub;
     buttonCollection.addElement(buttonStart);
     buttonCollection.addElement(buttonHelp);
+    buttonCollection.addElement(githubLink);
     _showWelcomeInterface();
+}
+function jumpToGithub() {
+    window.open("https://github.com/wlx65003/BB_BOMB");
 }
 function _showGameOver() {
     ctx.save();
