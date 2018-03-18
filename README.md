@@ -5,11 +5,11 @@ Paly online: [wlx65003.github.io/BB_BOMB/](https://wlx65003.github.io/BB_BOMB/)
 
 ### Tutorial
 
-W S A D to move.
+WSAD - move.
 
-Mouse to shot.
+Mouse - shot.
 
-Space to shot super laser.
+Space - super laser.
 
 ### Screen Shots
 
