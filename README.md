@@ -1,7 +1,7 @@
 # BB_BOMB
 A small flight shooting game based on HTML5 Canvas.
 
-Paly online: [wlx65003.github.io/BB_BOMB/](https://wlx65003.github.io/BB_BOMB/)
+Paly online: <https://lixin-wei.github.io/BB_BOMB/>
 
 ### Tutorial
 
